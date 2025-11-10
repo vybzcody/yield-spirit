@@ -95,6 +95,7 @@ typechain/
 typechain-types/
 
 # Local development
+.env
 .env.local
 .env.development.local
 .env.test.local
