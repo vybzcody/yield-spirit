@@ -2,6 +2,15 @@
 
 YieldSpirit is an innovative ERC-6551 NFT that enables yield-hunting across multiple blockchains using the SideShift API. The project implements a token-bound account system that allows NFTs to own assets and execute yield strategies autonomously.
 
+## Deployed Contracts (Sepolia Testnet)
+
+- **YieldSpirit NFT**: `0x0945B3dd5CD2b631A7595bA882C08Debdf33207C`
+- **ERC6551 Registry**: `0xe94260c4E5ADbECF63305704ba431d73DE2ABB4f`
+- **ERC6551 Account Implementation**: `0x1aB8637E7BF13B277f21a9d40d602c0239c4BA92`
+
+**Network**: Sepolia Testnet (Chain ID: 11155111)  
+**Explorer**: https://sepolia.etherscan.io/
+
 ## Current Implementation
 
 - **ERC-6551 Architecture**: Full token-bound account implementation with registry and executable accounts
@@ -33,7 +42,7 @@ yieldSpirit/
 │   ├── src/
 │   │   ├── context/           # Blockchain context
 │   │   ├── components/        # React components
-│   │   └── typechain-types/   # Generated TypeScript types
+│   │   └── services/          # API services
 │   └── ...
 ├── scripts/                   # Deployment scripts
 ├── artifacts/                 # Contract artifacts
@@ -64,13 +73,9 @@ yieldSpirit/
    npx hardhat test
    ```
 
-5. Deploy contracts (example to local network):
+5. Deploy contracts to Sepolia:
    ```bash
-   # First, start a local node
-   npx hardhat node
-   
-   # In another terminal, deploy the contracts
-   npx hardhat run scripts/deploy.js --network localhost
+   PRIVATE_KEY=your_private_key npx hardhat run scripts/deploy.js --network sepolia
    ```
 
 ### Frontend
@@ -87,7 +92,7 @@ yieldSpirit/
 
 3. Create a `.env` file with the contract address:
    ```
-   VITE_YIELDSPIRIT_CONTRACT_ADDRESS=YOUR_CONTRACT_ADDRESS_HERE
+   VITE_YIELDSPIRIT_CONTRACT_ADDRESS=0x0945B3dd5CD2b631A7595bA882C08Debdf33207C
    ```
 
 4. Start the development server:
@@ -112,15 +117,12 @@ yieldSpirit/
 
 - **BlockchainContext**: Manages wallet connection and contract interactions
 - **YieldSpiritDashboard**: Main UI component for minting and configuring strategies
-- **TypeChain Integration**: Generated TypeScript types for safe contract interactions
-
-## Contract Deployment Addresses
-
-When deploying to different networks, update the `YIELDSPIRIT_CONTRACT_ADDRESS` in the frontend's environment variables.
+- **SideShift Integration**: Real-time cross-chain swap functionality
+- **Contract Service**: Bridges smart contracts with SideShift API
 
 ## SideShift API Integration
 
-The system is designed to integrate with the SideShift API for cross-chain yield optimization. The TBA (token-bound account) can execute swaps and yield farming operations autonomously based on user-defined strategies.
+The system integrates with the SideShift API for cross-chain yield optimization. The TBA (token-bound account) can execute swaps and yield farming operations autonomously based on user-defined strategies.
 
 ## Development
 
@@ -143,6 +145,14 @@ Run the contract tests with:
 ```bash
 npx hardhat test
 ```
+
+## Deployment
+
+The application is deployed via GitHub Actions to Netlify. Set these GitHub secrets:
+
+- `NETLIFY_AUTH_TOKEN` - Your Netlify access token
+- `NETLIFY_SITE_ID` - Your Netlify site ID  
+- `VITE_YIELDSPIRIT_CONTRACT_ADDRESS` - Contract address (set to deployed address above)
 
 ## Future Enhancements
 
