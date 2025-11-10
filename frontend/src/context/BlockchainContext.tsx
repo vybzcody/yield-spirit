@@ -46,6 +46,9 @@ const YIELDSPIRIT_ABI = [
 // Contract address - will be loaded from environment
 const YIELDSPIRIT_CONTRACT_ADDRESS = import.meta.env.VITE_YIELDSPIRIT_CONTRACT_ADDRESS || "0x5FbDB2315678afecb367f032d93F642f64180aa3"; // Default to local deployment address
 
+// Sepolia testnet chain ID
+const SEPOLIA_CHAIN_ID = 11155111;
+
 export const useBlockchain = () => {
   const context = useContext(BlockchainContext);
   if (!context) {
@@ -67,9 +70,9 @@ export const BlockchainProvider: React.FC<Props> = ({ children }) => {
   const [isWalletConnected, setIsWalletConnected] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
-  // Initialize contract once we have a signer
+  // Initialize contract once we have a signer and correct network
   useEffect(() => {
-    if (signer) {
+    if (signer && chainId === SEPOLIA_CHAIN_ID) {
       try {
         const contract = new Contract(
           YIELDSPIRIT_CONTRACT_ADDRESS,
@@ -80,8 +83,45 @@ export const BlockchainProvider: React.FC<Props> = ({ children }) => {
       } catch (error) {
         console.error('Error initializing contract:', error);
       }
+    } else {
+      setYieldSpiritContract(null);
     }
-  }, [signer]);
+  }, [signer, chainId]);
+
+  const switchToSepolia = async () => {
+    if (typeof window !== 'undefined' && (window as any).ethereum) {
+      try {
+        await (window as any).ethereum.request({
+          method: 'wallet_switchEthereumChain',
+          params: [{ chainId: '0xaa36a7' }], // Sepolia chain ID in hex
+        });
+      } catch (switchError: any) {
+        // This error code indicates that the chain has not been added to MetaMask
+        if (switchError.code === 4902) {
+          try {
+            await (window as any).ethereum.request({
+              method: 'wallet_addEthereumChain',
+              params: [
+                {
+                  chainId: '0xaa36a7',
+                  chainName: 'Sepolia Testnet',
+                  nativeCurrency: {
+                    name: 'ETH',
+                    symbol: 'ETH',
+                    decimals: 18,
+                  },
+                  rpcUrls: ['https://sepolia.infura.io/v3/'],
+                  blockExplorerUrls: ['https://sepolia.etherscan.io/'],
+                },
+              ],
+            });
+          } catch (addError) {
+            console.error('Error adding Sepolia network:', addError);
+          }
+        }
+      }
+    }
+  };
 
   const connectWallet = async () => {
     setIsLoading(true);
@@ -104,6 +144,12 @@ export const BlockchainProvider: React.FC<Props> = ({ children }) => {
         setAccount(userAddress);
         setChainId(Number(network.chainId));
         setIsWalletConnected(true);
+
+        // Check if user is on correct network
+        if (Number(network.chainId) !== SEPOLIA_CHAIN_ID) {
+          alert(`Please switch to Sepolia Testnet. Current network: ${network.name}`);
+          await switchToSepolia();
+        }
 
         console.log('Wallet connected:', userAddress);
       } catch (error) {
