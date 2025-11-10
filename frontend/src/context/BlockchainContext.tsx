@@ -93,10 +93,10 @@ export const BlockchainProvider: React.FC<Props> = ({ children }) => {
       try {
         await (window as any).ethereum.request({
           method: 'wallet_switchEthereumChain',
-          params: [{ chainId: '0xaa36a7' }], // Sepolia chain ID in hex
+          params: [{ chainId: '0xaa36a7' }], // Ethereum Sepolia chain ID
         });
       } catch (switchError: any) {
-        // This error code indicates that the chain has not been added to MetaMask
+        // Chain not added to MetaMask
         if (switchError.code === 4902) {
           try {
             await (window as any).ethereum.request({
@@ -104,20 +104,23 @@ export const BlockchainProvider: React.FC<Props> = ({ children }) => {
               params: [
                 {
                   chainId: '0xaa36a7',
-                  chainName: 'Sepolia Testnet',
+                  chainName: 'Ethereum Sepolia Testnet',
                   nativeCurrency: {
                     name: 'ETH',
                     symbol: 'ETH',
                     decimals: 18,
                   },
-                  rpcUrls: ['https://sepolia.infura.io/v3/'],
+                  rpcUrls: ['https://sepolia.infura.io/v3/', 'https://ethereum-sepolia-rpc.publicnode.com'],
                   blockExplorerUrls: ['https://sepolia.etherscan.io/'],
                 },
               ],
             });
           } catch (addError) {
-            console.error('Error adding Sepolia network:', addError);
+            console.error('Error adding Ethereum Sepolia network:', addError);
+            throw new Error('Please manually add Ethereum Sepolia network to MetaMask');
           }
+        } else {
+          throw switchError;
         }
       }
     }
@@ -133,6 +136,9 @@ export const BlockchainProvider: React.FC<Props> = ({ children }) => {
           params: [{ eth_accounts: {} }]
         });
 
+        // Force switch to Sepolia first
+        await switchToSepolia();
+
         const web3Provider = new BrowserProvider((window as any).ethereum);
         await web3Provider.send('eth_requestAccounts', []);
         const signer = await web3Provider.getSigner();
@@ -145,10 +151,9 @@ export const BlockchainProvider: React.FC<Props> = ({ children }) => {
         setChainId(Number(network.chainId));
         setIsWalletConnected(true);
 
-        // Check if user is on correct network
+        // Double check network after connection
         if (Number(network.chainId) !== SEPOLIA_CHAIN_ID) {
-          alert(`Please switch to Sepolia Testnet. Current network: ${network.name}`);
-          await switchToSepolia();
+          alert(`Wrong network detected. Please manually switch to Ethereum Sepolia in MetaMask.`);
         }
 
         console.log('Wallet connected:', userAddress);
