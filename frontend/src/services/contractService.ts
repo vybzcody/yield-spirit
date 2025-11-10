@@ -38,42 +38,76 @@ class ContractService {
   }
 
   /**
-   * Get all tokens owned by user
+   * Validate contract is deployed and accessible
+   */
+  async validateContract(): Promise<boolean> {
+    if (!this.contract || !this.provider) return false;
+    
+    try {
+      // Try to get contract code to verify deployment
+      const code = await this.provider.getCode(await this.contract.getAddress());
+      return code !== '0x';
+    } catch (error) {
+      console.error('Contract validation failed:', error);
+      return false;
+    }
+  }
+
+  /**
+   * Get all tokens owned by user with better error handling
    */
   async getUserTokens(userAddress: string): Promise<UserToken[]> {
     if (!this.contract) throw new Error('Contract not initialized');
 
-    const balance = await this.contract.balanceOf(userAddress);
-    const tokens: UserToken[] = [];
-
-    // Get token IDs owned by user (simplified - in production use events/indexing)
-    for (let i = 0; i < balance; i++) {
-      try {
-        const tokenId = i; // Simplified - would need proper token enumeration
-        const owner = await this.contract.ownerOf(tokenId);
-        
-        if (owner.toLowerCase() === userAddress.toLowerCase()) {
-          const details = await this.contract.getYieldSpiritDetails(tokenId);
-          tokens.push({
-            tokenId,
-            owner: details.owner,
-            tbaAddress: details.tba,
-            strategy: {
-              name: details.strategy.name,
-              minAPY: Number(details.strategy.minAPY),
-              targetChains: details.strategy.targetChains,
-              targetAssets: details.strategy.targetAssets,
-              active: details.strategy.active
-            }
-          });
-        }
-      } catch (error) {
-        // Token doesn't exist or not owned by user
-        break;
+    try {
+      // Validate contract first
+      const isValid = await this.validateContract();
+      if (!isValid) {
+        console.warn('Contract not deployed or accessible');
+        return [];
       }
-    }
 
-    return tokens;
+      const balance = await this.contract.balanceOf(userAddress);
+      const balanceNum = Number(balance);
+      
+      if (balanceNum === 0) {
+        return [];
+      }
+
+      const tokens: UserToken[] = [];
+
+      // Get token IDs owned by user (simplified approach)
+      for (let i = 0; i < Math.min(balanceNum, 10); i++) { // Limit to 10 for performance
+        try {
+          const tokenId = i;
+          const owner = await this.contract.ownerOf(tokenId);
+          
+          if (owner.toLowerCase() === userAddress.toLowerCase()) {
+            const details = await this.contract.getYieldSpiritDetails(tokenId);
+            tokens.push({
+              tokenId,
+              owner: details.owner,
+              tbaAddress: details.tba,
+              strategy: {
+                name: details.strategy.name || `Strategy ${tokenId}`,
+                minAPY: Number(details.strategy.minAPY),
+                targetChains: details.strategy.targetChains || [],
+                targetAssets: details.strategy.targetAssets || [],
+                active: details.strategy.active
+              }
+            });
+          }
+        } catch (error) {
+          // Token doesn't exist or not owned by user, continue
+          break;
+        }
+      }
+
+      return tokens;
+    } catch (error) {
+      console.error('Error getting user tokens:', error);
+      return []; // Return empty array instead of throwing
+    }
   }
 
   /**
@@ -81,6 +115,9 @@ class ContractService {
    */
   async executeYieldStrategy(tokenId: number, fromCoin: string, toCoin: string, fromNetwork: string, toNetwork: string, amount: string): Promise<void> {
     if (!this.contract) throw new Error('Contract not initialized');
+
+    const isValid = await this.validateContract();
+    if (!isValid) throw new Error('Contract not deployed or accessible');
 
     // Get token details
     const details = await this.contract.getYieldSpiritDetails(tokenId);
@@ -90,7 +127,7 @@ class ContractService {
 
     // Create SideShift swap
     const shiftData = {
-      settleAddress: details.tba, // TBA receives the swapped tokens
+      settleAddress: details.tba,
       depositCoin: fromCoin,
       settleCoin: toCoin,
       depositNetwork: fromNetwork,
@@ -100,7 +137,7 @@ class ContractService {
     const shift = await sideShiftService.createVariableShift(shiftData);
 
     // Record swap in contract
-    const deadline = Math.floor(Date.now() / 1000) + (7 * 24 * 60 * 60); // 7 days
+    const deadline = Math.floor(Date.now() / 1000) + (7 * 24 * 60 * 60);
     await this.contract.initiateSideShiftSwap(
       tokenId,
       shift.id,
@@ -108,7 +145,7 @@ class ContractService {
       `${toCoin}-${toNetwork}`,
       details.tba,
       amount,
-      '0', // Min return amount (calculated by SideShift)
+      '0',
       deadline
     );
   }
@@ -119,20 +156,25 @@ class ContractService {
   async getTokenSwaps(tokenId: number): Promise<TokenSwap[]> {
     if (!this.contract) throw new Error('Contract not initialized');
 
-    const swaps = await this.contract.getSideShiftSwaps(tokenId);
-    return swaps.map((swap: any) => ({
-      quoteId: swap.quoteId,
-      tokenOwner: swap.tokenOwner,
-      tbaAddress: swap.tbaAddress,
-      depositMethodId: swap.depositMethodId,
-      settleMethodId: swap.settleMethodId,
-      settleAddress: swap.settleAddress,
-      depositAmount: swap.depositAmount.toString(),
-      minReturnAmount: swap.minReturnAmount.toString(),
-      deadline: Number(swap.deadline),
-      executed: swap.executed,
-      cancelled: swap.cancelled
-    }));
+    try {
+      const swaps = await this.contract.getSideShiftSwaps(tokenId);
+      return swaps.map((swap: any) => ({
+        quoteId: swap.quoteId,
+        tokenOwner: swap.tokenOwner,
+        tbaAddress: swap.tbaAddress,
+        depositMethodId: swap.depositMethodId,
+        settleMethodId: swap.settleMethodId,
+        settleAddress: swap.settleAddress,
+        depositAmount: swap.depositAmount.toString(),
+        minReturnAmount: swap.minReturnAmount.toString(),
+        deadline: Number(swap.deadline),
+        executed: swap.executed,
+        cancelled: swap.cancelled
+      }));
+    } catch (error) {
+      console.error('Error getting token swaps:', error);
+      return [];
+    }
   }
 
   /**
@@ -155,13 +197,18 @@ class ContractService {
   async getTBABalance(tokenId: number): Promise<string> {
     if (!this.contract || !this.provider) return '0';
 
-    const details = await this.contract.getYieldSpiritDetails(tokenId);
-    if (!details.tba || details.tba === '0x0000000000000000000000000000000000000000') {
+    try {
+      const details = await this.contract.getYieldSpiritDetails(tokenId);
+      if (!details.tba || details.tba === '0x0000000000000000000000000000000000000000') {
+        return '0';
+      }
+
+      const balance = await this.provider.getBalance(details.tba);
+      return balance.toString();
+    } catch (error) {
+      console.error('Error getting TBA balance:', error);
       return '0';
     }
-
-    const balance = await this.provider.getBalance(details.tba);
-    return balance.toString();
   }
 }
 

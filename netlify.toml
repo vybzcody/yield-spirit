@@ -2,7 +2,24 @@
   command = ""
   publish = "dist"
 
+# SPA redirect - must be first and catch all routes
 [[redirects]]
   from = "/*"
+  to = "/index.html"
+  status = 200
+
+# Optional: Specific redirects for common paths (if needed)
+[[redirects]]
+  from = "/mint"
+  to = "/index.html"
+  status = 200
+
+[[redirects]]
+  from = "/dashboard"
+  to = "/index.html"
+  status = 200
+
+[[redirects]]
+  from = "/cross-chain-yield"
   to = "/index.html"
   status = 200
