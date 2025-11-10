@@ -1,0 +1,33 @@
+{
+  "name": "yieldspirit",
+  "version": "1.0.0",
+  "description": "An ERC-6551 yield hunting NFT using SideShift API",
+  "main": "index.js",
+  "scripts": {
+    "test": "npx hardhat test",
+    "compile": "npx hardhat compile",
+    "deploy": "npx hardhat run scripts/deploy.js --network localhost",
+    "dev": "npx hardhat node",
+    "clean": "npx hardhat clean"
+  },
+  "keywords": [
+    "ethereum",
+    "solidity",
+    "erc-6551",
+    "nft",
+    "yield farming",
+    "defi",
+    "sideshift"
+  ],
+  "author": "Akindo",
+  "license": "MIT",
+  "devDependencies": {
+    "@nomicfoundation/hardhat-toolbox": "^3.0.0",
+    "@nomicfoundation/hardhat-chai-matchers": "^2.0.3",
+    "@openzeppelin/contracts": "^4.9.3",
+    "hardhat": "^2.17.1"
+  },
+  "dependencies": {
+    "@openzeppelin/contracts": "^4.9.3"
+  }
+}

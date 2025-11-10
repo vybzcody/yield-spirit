@@ -1,0 +1,18 @@
+[build]
+  publish = "dist/"
+  command = "echo 'Build happens in GitHub Actions, not on Netlify'"
+
+# We disable Netlify's build process since we build in GitHub Actions
+[context.production]
+  command = "echo 'Build happens in GitHub Actions, not on Netlify'"
+
+[context.deploy-preview]
+  command = "echo 'Build happens in GitHub Actions, not on Netlify'"
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+[template.environment]
+  VITE_YIELDSPIRIT_CONTRACT_ADDRESS = "Your deployed contract address"

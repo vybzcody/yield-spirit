@@ -1,0 +1,101 @@
+# Dependencies
+node_modules/
+frontend/node_modules/
+
+# Build outputs
+dist/
+frontend/dist/
+build/
+out/
+
+# Environment variables
+.env*
+!.env.example
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Coverage directory used by tools like istanbul
+coverage/
+*.lcov
+
+# TypeScript cache
+*.tsbuildinfo
+
+# Next.js
+.next/
+out/
+
+# Nuxt.js
+.nuxt/
+dist/
+
+# Remix
+public/build/
+*.tsbuildinfo
+
+# Vue
+.vuepress/dist
+.nuxt
+dist/
+
+# Serverless
+.serverless/
+
+#Fuse-box cache
+.fusebox/
+
+# DynamoDB Local
+.dynamodb/
+
+# Tern
+.tern-port
+
+# Yarn
+.yarn/cache
+.yarn/unplugged
+.yarn/build-state.yml
+.yarn/install-state.gz
+.pnp.*
+
+# Hardhat
+cache/
+artifacts/ 
+# Solidity
+.solhint-cache
+.solidity-coveragerc
+
+# Temporary files
+tmp/
+temp/
+
+# Hardhat and Truffle files
+.hardhat/
+.truffle/
+
+# ABI files (if generated separately)
+abis/
+
+# Typechain generated files
+typechain/
+typechain-types/
+
+# Local development
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
