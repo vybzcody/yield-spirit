@@ -107,7 +107,7 @@ test/*.js
 # Deployment files
 deploy.sh
 docker-compose.yml
-Dockerfile
+# Dockerfile
 server/.env
 server/.env.example
 server/DEPLOYMENT.md
