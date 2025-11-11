@@ -16,6 +16,7 @@ YieldSpirit is an innovative ERC-6551 NFT that enables yield-hunting across mult
 - **ERC-6551 Architecture**: Full token-bound account implementation with registry and executable accounts
 - **NFT Minting**: ERC-721 based NFT creation with unique yield strategies
 - **Strategy Management**: Configurable yield strategies with target chains and assets
+- **Autonomous Operation**: Off-chain services continuously monitor and execute yield strategies
 - **SideShift API Integration**: Cross-chain swap functionality for yield optimization (200+ assets, 40+ chains)
 - **Frontend Dashboard**: Complete React UI for minting, strategy configuration, and portfolio management
 - **Multi-Chain Ready**: Architecture designed for deployment across 40+ chains
@@ -28,6 +29,121 @@ YieldSpirit is an innovative ERC-6551 NFT that enables yield-hunting across mult
 - **Automated Rebalancing**: Algorithmic portfolio rebalancing driven by AI
 - **DeFi Protocol Integration**: Integration with Aave, Compound, Uniswap, Curve, Lido and more protocols
 
+## Key Improvements
+
+### Fixed NFT Listing Issue
+- **Problem**: Frontend was not properly displaying user's NFTs
+- **Solution**: Updated contractService.ts to use proper token enumeration by scanning from token ID 0 to nextTokenId
+- **Result**: All user tokens are now correctly retrieved and displayed
+
+### Autonomous Yield Execution
+- **Problem**: Users had to manually trigger yield strategies
+- **Solution**: Implemented server-side autonomous service that continuously monitors and executes strategies
+- **Result**: NFTs automatically execute profitable yield strategies without user intervention
+
+### SideShift Integration
+- **Problem**: Cross-chain swaps required manual execution
+- **Solution**: Integrated SideShift API for automated cross-chain yield optimization
+- **Result**: Automatic execution of profitable cross-chain swaps
+
+## How to Test Functionality
+
+### 1. Deploy Contracts (if needed)
+```bash
+npx hardhat run scripts/deploy.js --network sepolia
+```
+
+### 2. Set up Environment
+```bash
+# Install dependencies
+npm install
+cd frontend && npm install
+cd ../server && npm install
+
+# Configure environment variables
+cp server/.env.example server/.env
+# Update with your contract address and RPC URL
+```
+
+### 3. Test Token Retrieval
+The frontend now properly retrieves tokens by:
+- Getting nextTokenId to know the range
+- Checking ownership of each token ID in that range
+- Fetching detailed strategy information for owned tokens
+
+### 4. Test Autonomous Service
+```bash
+# Start the server
+cd server
+npm run autonomous
+```
+
+The service will:
+- Monitor all tokens with active strategies
+- Scan for SideShift opportunities
+- Execute swaps automatically when profitable
+- Maintain on-chain state updates
+
+## Architecture
+
+```
+┌─────────────────┐    ┌────────────────────┐
+│   User Frontend │────│  YieldSpirit NFT   │
+│                 │    │   (on-chain)       │
+│   (Mint, View)  │    │ - Owner            │
+│                 │    │ - Strategy params  │
+└─────────────────┘    │ - TBA association  │
+                       └────────────────────┘
+                                │
+                                ▼
+                    ┌──────────────────────┐
+                    │    YieldSpirit       │
+                    │   Server (off-chain) │
+                    │ - Monitors NFTs      │
+                    │ - Executes strategies│
+                    │ - Reports back       │
+                    └──────────────────────┘
+                                │
+                                ▼
+                    ┌──────────────────────┐
+                    │   SideShift API      │
+                    │ Cross-chain swaps    │
+                    └──────────────────────┘
+```
+
+## Frontend Improvements
+
+The frontend contractService has been enhanced to properly enumerate tokens without relying on ERC721Enumerable, making it compatible with the existing deployed contracts:
+
+1. **Token Discovery**: Scans token IDs from 0 to nextTokenId
+2. **Ownership Verification**: Checks ownership of each token ID
+3. **Strategy Retrieval**: Fetches complete strategy information
+4. **TBA Integration**: Associated Token Bound Accounts are properly retrieved
+
+## Deployment
+
+### Backend Server (Docker + Traefik)
+
+The backend server can be deployed to your VPS using Docker and Traefik. For deployment instructions, see [server/DEPLOYMENT.md](server/DEPLOYMENT.md).
+
+The server provides:
+- Autonomous yield strategy execution
+- SideShift API integration
+- REST API for monitoring and status
+- Token monitoring services
+
+### Frontend
+
+The frontend is already deployed on Netlify as mentioned in the original setup.
+
+## Production Setup
+
+1. **Environment Variables**: Ensure all required environment variables are set properly
+2. **Contract Address**: Use your actual deployed contract address
+3. **RPC Provider**: Use a reliable RPC provider for production
+4. **SSL/TLS**: The Docker setup automatically handles SSL via Traefik and Let's Encrypt
+5. **Monitoring**: Server provides health check endpoints for monitoring
+
 ## Project Structure
 
 ```
@@ -36,6 +152,11 @@ yieldSpirit/
 │   ├── ERC6551Registry.sol    # ERC-6551 Registry contract
 │   ├── ERC6551Account.sol     # Token-bound account implementation
 │   └── YieldSpirit.sol        # Main NFT contract
+├── server/                    # Backend autonomous services
+│   ├── autonomous-yield-service.js  # Main autonomous service
+│   ├── sideShiftService.js    # SideShift API integration
+│   ├── server.js              # Main server
+│   └── README.md              # Server documentation
 ├── test/                      # Contract tests
 │   └── YieldSpirit.test.js    # Test suite
 ├── frontend/                  # React frontend
@@ -46,6 +167,7 @@ yieldSpirit/
 │   └── ...
 ├── scripts/                   # Deployment scripts
 ├── artifacts/                 # Contract artifacts
+├── architecture.md            # Architecture documentation
 └── ...
 ```
 

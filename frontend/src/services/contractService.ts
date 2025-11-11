@@ -76,12 +76,16 @@ class ContractService {
 
       const tokens: UserToken[] = [];
 
-      // Get token IDs owned by user (simplified approach)
-      for (let i = 0; i < Math.min(balanceNum, 10); i++) { // Limit to 10 for performance
+      // Get the total number of tokens minted to know the range to search
+      // Since the contract doesn't implement ERC721Enumerable, we need to scan
+      // through all possible token IDs up to the next one to be minted
+      const nextTokenId = await this.contract.nextTokenId();
+      const nextTokenIdNum = Number(nextTokenId);
+      
+      // Search through all possible token IDs up to the next token ID to be minted
+      for (let tokenId = 0; tokenId < nextTokenIdNum; tokenId++) {
         try {
-          const tokenId = i;
           const owner = await this.contract.ownerOf(tokenId);
-          
           if (owner.toLowerCase() === userAddress.toLowerCase()) {
             const details = await this.contract.getYieldSpiritDetails(tokenId);
             tokens.push({
@@ -98,8 +102,8 @@ class ContractService {
             });
           }
         } catch (error) {
-          // Token doesn't exist or not owned by user, continue
-          break;
+          // Token doesn't exist (was burned or never minted), continue
+          continue;
         }
       }
 
