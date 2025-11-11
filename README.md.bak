@@ -4,9 +4,9 @@ YieldSpirit is an innovative ERC-6551 NFT that enables yield-hunting across mult
 
 ## Deployed Contracts (Sepolia Testnet)
 
-- **YieldSpirit NFT**: `0x40c07E7147BEcc5B7F080fbA6295486f42a04c96`
-- **ERC6551 Registry**: `0x3ec19d21e7E003565ed600Cc078F116fDEe4c6f2`
-- **ERC6551 Account Implementation**: `0xcB2CE917f3DA96Ae439e25BaAC3B77AA927fAd5D`
+- **YieldSpirit NFT**: `0x0945B3dd5CD2b631A7595bA882C08Debdf33207C`
+- **ERC6551 Registry**: `0xe94260c4E5ADbECF63305704ba431d73DE2ABB4f`
+- **ERC6551 Account Implementation**: `0x1aB8637E7BF13B277f21a9d40d602c0239c4BA92`
 
 **Network**: Sepolia Testnet (Chain ID: 11155111)  
 **Explorer**: https://sepolia.etherscan.io/
@@ -214,7 +214,7 @@ yieldSpirit/
 
 3. Create a `.env` file with the contract address:
    ```
-   VITE_YIELDSPIRIT_CONTRACT_ADDRESS=0x40c07E7147BEcc5B7F080fbA6295486f42a04c96
+   VITE_YIELDSPIRIT_CONTRACT_ADDRESS=0x0945B3dd5CD2b631A7595bA882C08Debdf33207C
    ```
 
 4. Start the development server:
