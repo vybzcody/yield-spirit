@@ -21,6 +21,9 @@ RUN npm install --only=production
 WORKDIR /app
 COPY . .
 
+# Specifically copy the artifacts and other necessary files
+RUN if [ -d artifacts ]; then cp -r artifacts /app/; fi
+
 # Move server files to correct location
 RUN cp -r server/* /app/
 RUN rm -rf server
